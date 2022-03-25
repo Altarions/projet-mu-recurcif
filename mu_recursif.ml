@@ -36,3 +36,19 @@ exception End;;
 
 
 (* ------------------------- functions ------------------------- *)
+
+let string_to_mu string =
+    match x with
+    |
+    | _ ->
+;;
+
+
+let main () =
+
+;;
+
+(* ------------------------- execution ------------------------- *)
+
+
+main ();;
