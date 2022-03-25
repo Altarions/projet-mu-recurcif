@@ -1,2 +1,2 @@
-# projet-mu-recurcif
+# projet-mu-recursif
 projet en programmation fonctionnel 
