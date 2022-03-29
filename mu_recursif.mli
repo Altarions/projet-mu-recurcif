@@ -38,3 +38,14 @@ val identite : mu
 
 val zero : mu
 (** La fonction mu-récursive ne prenant aucun paramètre et renvoyant zéro. *)
+
+val print_mu : mu -> string
+(** [print_mu mu] affiche la formule de [mu] dans la console.  *)
+
+val est_identite : mu list -> bool
+(** [est_identite l] renvoie [true] si [l] est une liste de projections formant
+    une identité et [false] sinon. *)
+
+val simplifier : mu -> mu
+(** [simplifer mu] renvoie une fonction mu-récursive simplifiée sémantiquement
+    équivalente à [mu]. *)
