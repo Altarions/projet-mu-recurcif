@@ -46,6 +46,14 @@ val est_identite : mu list -> bool
 (** [est_identite l] renvoie [true] si [l] est une liste de projections formant
     une identité et [false] sinon. *)
 
+val substituer_parametre : (int -> mu) -> int -> mu -> mu
+(** [substituer_parametre gen i f] renvoie une fonction mu-récursive substituant
+    le paramètre d'indice [i] de [f] par [gen (arite f - 1)]. *)
+
+val modifier_seuil_inlining_induction : int -> int
+(** [modifier_seuil_inlining_induction s] modifie le nombre d'itérations d'une
+    fonction d'induction à partir duquel une fonction ne sera plus inlinée. *)
+
 val simplifier : mu -> mu
-(** [simplifer mu] renvoie une fonction mu-récursive simplifiée sémantiquement
+(** [simplifer mu] renvoie une fonction mu-récursive simplifiée, sémantiquement
     équivalente à [mu]. *)
