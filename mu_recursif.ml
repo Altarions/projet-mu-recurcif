@@ -825,64 +825,18 @@ and simplifier_minimisation_de_constante = function
   | _ -> None
 
 
-(* ------------------------- discussion ------------------------- *)
-
-
-(* string_to_mu elle doit retourner le type mu ?*)
-
-(**
-On peut peut-être le faire en plusieurs étapes, puisqu'on devra notamment vérifier que les nombre de paramètres lors de compositions est bon, etc.
-Du coup, par exemple, on peut commencer par :
- - transformer la chaîne de caractères en une liste de symboles, en retirant les espaces ou autres,
- - transformer cette liste en arbre, en traitant les appels de fonctions et compositions, i.e.  S . mu(a, b) donne quelque chose comme Noeud(Comp, S, Noeud(Mu, a, b))
- - puis transformer l'arbre en mu en vérifiant les paramètres, et autres choses...
-	ok je comprends !
-
-
-LA PROF EST PASSÉE.
- et ?
-
-Donc :
-	- les "optimisations" de fonctions (réductions ou autre) c'est vraiment optionnel,
-  - la conversion d'une chaîne de caractères, on risque de galérer lorsqu'il va falloir traiter le parenthésage et la composition (passer d'une liste de symboles en arbre quoi).
-ok du coup elle propose un truc ou on doit trouver ?
-
-Elle dit qu'il existe des librairies standard de "parsing", mais que sans les utiliser, on peut se simplifier la vie en ne considérant que des parenthèses,
-donc pour "S . p(a, b)" on aurait ".(S, p(a, b))" ou quelque chose de similaire.
-ok du coup les ( ) découpe chaque expression
-Détecter à quel endroit est le point est plus compliqué d'après elle, elle n'a pas dit que ce n'était pas faisable, juste plus dur, donc c'est au choix.
-On peut commencer à ne gérer que des parenthèses et améliorer après sinon.
-Après elle s'étonne que tout le monde choisissent les automates cellulaires ou réseaux de pétri x)
-je vais faire de mon mieux pour gerer la traduction !
-Bah bonne chance. x) je fais la fonction (ci-dessus) pour "appliquer" une fonction mu-récursive à des paramètres si ça te va.
-ya
-
-
-Y a TD, du coup je vais bouger.
-On a TD de CEL à 17h après, donc je ne pourrai bosser sur l'info fonda qu'à partir de 6h30.
-olala mais l'emploie du temps throw vraiment en ce moment
-tkt je vais faire la partie liaison avec le cours
-
-x)
-J'ai rédigé l'exemple tout-à-l'heure, n'hésites surtout pas à réécrire quoi que ce soit si c'est pas assez compréhensible.
-j'ai vu tkt
-
-Bah à tout-à-l'heure.
-yep
-
-*)
 
 (* ------------------------- main ------------------------- *)
 
 
 let string_to_mu chaine =
-		let size = String.length chaine in
-
-    let rec orienteur chaine acc =
-      match acc with
-        | i when i = size -> ""
-        | _ -> chaine.[acc]; orienteur chaine acc+1;
-    in orienteur chaine 0
+  let max = String.length chaine in
+  let rec loop i =
+    if i < max then
+      match (String.get chaine i) with 
+        | 
+      
+  in loop 0 
 ;;
 
 
