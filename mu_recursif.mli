@@ -52,7 +52,8 @@ val substituer_parametre : (int -> mu) -> int -> mu -> mu
 
 val modifier_seuil_inlining_induction : int -> int
 (** [modifier_seuil_inlining_induction s] modifie le nombre d'itérations d'une
-    fonction d'induction à partir duquel une fonction ne sera plus inlinée. *)
+    fonction d'induction à partir duquel une fonction ne sera plus inlinée et
+    renvoie le précédent nombre d'itérations. *)
 
 val simplifier : mu -> mu
 (** [simplifer mu] renvoie une fonction mu-récursive simplifiée, sémantiquement

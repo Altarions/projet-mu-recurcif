@@ -96,8 +96,8 @@ let rec arite = function
 
 
 let rec appliquer mu =
-  let f  = appliquer_aux mu in
-  let ar = arite mu in
+  let f  = appliquer_aux mu
+  and ar = arite mu in
   fun args ->
     if List.length args != ar then failwith "appliquer mu args : ar(mu) != #args" else
       f @@ List.map (fun arg -> lazy arg) args
@@ -129,12 +129,11 @@ and appliquer_induction v =
   let base     = appliquer_aux v.induction_base
   and heredite = appliquer_aux v.induction_heredite in
   function
-  | []           -> failwith "appliquer_induction _ args : args = []"
-  | max :: args' ->
-      let lazy max = max in
+  | []                -> failwith "appliquer : erreur interne"
+  | lazy max :: args' ->
       let rec iterer i =
         if i < 0 then base args'
-        else heredite (lazy i :: lazy (iterer (i - 1)) :: args')
+        else heredite (Lazy.from_val i :: lazy (iterer (i - 1)) :: args')
       in
       iterer (max - 1)
 
@@ -142,7 +141,7 @@ and appliquer_minimisation v =
   let predicat = appliquer_aux v.minimisation_predicat in
   fun args ->
     let rec rechercher i =
-      if predicat (lazy i :: args) = 0 then i
+      if predicat (Lazy.from_val i :: args) = 0 then i
       else rechercher (i + 1)
     in
     rechercher 0
@@ -825,7 +824,47 @@ and simplifier_minimisation_de_constante = function
   | _ -> None
 
 
-(* ------------------------- discussion ------------------------- *)
+type noeud = Symbole      of char
+           | Expression   of noeud list list
+           | Substitution of noeud list * noeud list
+
+
+let string_of_noeud_list liste =
+  let buffer = Buffer.create (List.length liste) in
+  let rec aux = function
+    | Symbole s -> Buffer.add_char buffer s
+    | _         -> failwith "string_of_noeud_list : fonction mal construite"
+  in
+  List.iter aux liste;
+  Buffer.contents buffer
+
+
+let int_of_noeud_list liste = int_of_string @@ string_of_noeud_list liste
+
+
+let analyser_mu liste =
+  let rec aux = function
+    | [Symbole 'S'] -> successeur
+    | [Symbole 'P'; Expression [arite; indice]] ->
+        projection (int_of_noeud_list arite) (int_of_noeud_list indice)
+    | [Symbole 'C'; Expression [arite; valeur]] ->
+        projection (int_of_noeud_list arite) (int_of_noeud_list valeur)
+    | [Substitution (fonction, [Expression arguments])] ->
+        substitution (aux fonction) (List.map aux arguments)
+    | [Substitution (fonction, argument)] ->
+        substitution (aux fonction) [aux argument]
+    | [Symbole 'R'; Expression [base; heredite]] ->
+        induction (aux base) (aux heredite)
+    | [Symbole 'M'; Expression [predicat]] -> minimisation(aux predicat)
+    | [Expression [fonction]] -> aux fonction
+    | liste ->
+        let definition = string_of_noeud_list liste in
+        failwith "TODO : accès définition"
+  in
+  aux liste
+
+
+  (* ------------------------- discussion ------------------------- *)
 
 
 (* string_to_mu elle doit retourner le type mu ?*)
