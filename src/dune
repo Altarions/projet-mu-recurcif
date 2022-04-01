@@ -1,0 +1,3 @@
+(executable
+ (public_name projet_mu_recursif)
+ (name main))
