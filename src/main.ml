@@ -178,6 +178,7 @@ let resoudre_application dictionnaire application =
         | Some mu -> mu
         | None    -> failwith @@ Printf.sprintf "Fonction '%s' indefinie." nom
       ) @@ List.map int_of_noeud_list arguments;
+      print_newline ();
       dictionnaire
   | _ -> failwith "Application invalide."
 
