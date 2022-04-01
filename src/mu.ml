@@ -69,7 +69,7 @@ let rec appliquer mu =
   let f  = appliquer_aux mu
   and ar = arite mu in
   fun args ->
-    if List.length args != ar then failwith "appliquer mu args : ar(mu) != #args" else
+    if List.length args != ar then failwith "Parametres d'application invalides" else
       f @@ List.map (fun arg -> lazy arg) args
 
 and appliquer_aux = function
@@ -99,7 +99,7 @@ and appliquer_induction v =
   let base     = appliquer_aux v.induction_base
   and heredite = appliquer_aux v.induction_heredite in
   function
-  | []                -> failwith "appliquer : erreur interne"
+  | []                -> failwith "Erreur interne"
   | lazy max :: args' ->
       let rec iterer i =
         if i < 0 then base args'
@@ -149,34 +149,34 @@ let successeur =
   }
 
 let constante arite valeur =
-  if arite < 0 then failwith "constante arite : arite < 0" else
-  if valeur < 0 then failwith "constante _ valeur : valeur < 0" else
+  if arite < 0 then failwith "Arite de fonction constante negative" else
+  if valeur < 0 then failwith "Valeur de fonction constante negative" else
     Constante {
       constante_arite  = arite;
       constante_valeur = valeur;
     }
 
 let projection arite indice =
-  if indice <= 0 then failwith "projection _ indice : indice ≤ 0" else
-  if indice > arite then failwith "projection arite indice : indice > arite" else
+  if indice <= 0 then failwith "Indice de fonction de projection negatif ou nul" else
+  if indice > arite then failwith "Indice de fonction de projection superieur a son arite" else
     Projection {
       projection_arite  = arite;
       projection_indice = indice;
     }
 
 let substitution fonction = function
-  | []                -> failwith "substitution _ arguments : arguments = []"
-  | f::r as arguments ->
+  | []                  -> failwith "Substitution de fonction manquante"
+  | f :: r as arguments ->
       let n = arite f in
-      if arite fonction != List.length arguments then failwith "substitution fonction arguments : ar(fonction) != #arguments" else
-      if List.exists (fun f -> arite f != n) r then failwith "substitution _ [fi, ..., fj, ...] : ar(fi) != ar(fj)" else
+      if arite fonction != List.length arguments then failwith "Nombres de substitutions different de l'arite de la fonction" else
+      if List.exists (fun f -> arite f != n) r then failwith "Substitutions d'une meme fonction avec differentes arites" else
         Substitution {
           substitution_fonction  = fonction;
           substitution_arguments = arguments;
         }
 
 let induction base heredite =
-  if arite base + 2 != arite heredite then failwith "induction base heredite : ar(base) + 2 != ar(heredite)" else
+  if arite base + 2 != arite heredite then failwith "Arite invalide entre les cas de base et d'heredite d'une induction" else
     Induction {
       induction_base     = base;
       induction_heredite = heredite;
@@ -209,18 +209,18 @@ and print_successeur v =
   done
 
 and print_constante v =
-  print_string "C[";
+  print_string "C(";
   print_int v.constante_arite;
-  print_string ";";
+  print_string ",";
   print_int v.constante_valeur;
-  print_string "]"
+  print_string ")"
 
 and print_projection v =
-  print_string "P[";
+  print_string "P(";
   print_int v.projection_arite;
-  print_string ";";
+  print_string ",";
   print_int v.projection_indice;
-  print_string "]"
+  print_string ")"
 
 and print_substitution v =
   print_mu v.substitution_fonction;
@@ -242,21 +242,21 @@ and print_substitution v =
   end
 
 and print_induction v =
-  print_string "p(";
+  print_string "R(";
   print_mu v.induction_base;
   print_string ", ";
   print_mu v.induction_heredite;
   print_string ")"
 
 and print_minimisation v =
-  print_string "mu(";
+  print_string "M(";
   print_mu v.minimisation_predicat;
   print_string ")"
 
 and print_contradiction v =
-  print_string "mu(C[";
-  print_int v.contradiction_arite;
-  print_string ";1])"
+  print_string "M(C(";
+  print_int (v.contradiction_arite + 1);
+  print_string ",1))"
 
 
 let est_identite l =
@@ -271,8 +271,7 @@ let est_identite l =
 
 let substituer_parametre generer indice fonction =
   let arite' = arite fonction in
-  if indice <= 0 then failwith "substituer_parametre _ indice : indice ≤ 0" else
-  if indice > arite' then failwith "substituer_parametre _ indice fonction : indice > ar(fonction)" else
+  if indice <= 0 || indice > arite' then failwith "Erreur interne" else
     let rec construire_arguments acc indice' =
       if indice' = 0 then acc
       else if indice' = indice
@@ -286,6 +285,7 @@ let substituer_parametre generer indice fonction =
       substitution_fonction  = fonction;
       substitution_arguments = construire_arguments [] arite';
     }
+
 
 let parametre_constant valeur =
   substituer_parametre (fun arite -> Constante {
@@ -302,7 +302,7 @@ and parametre_contradiction =
 let seuil_inlining_induction = ref 100
 
 let modifier_seuil_inlining_induction seuil =
-  if seuil < 0 then failwith "modifier_seuil_inlining_induction seuil : seuil < 0" else
+  if seuil < 0 then failwith "Seuil negatif" else
     let precedent_seuil = !seuil_inlining_induction in
     seuil_inlining_induction := seuil; precedent_seuil
 
@@ -312,10 +312,7 @@ let rec simplifier mu =
     | s :: r ->
         (match s mu with
          | None     -> aux mu_modifiee mu r
-         | Some mu' ->
-             print_mu mu';
-             print_newline ();
-             aux true mu' simplificateurs)
+         | Some mu' -> aux true mu' simplificateurs)
     | _      ->
         if not mu_modifiee then mu else
           match mu with
@@ -389,7 +386,7 @@ and simplificateurs = [
 
 and simplifier_identite = function
   | Substitution v when est_identite v.substitution_arguments ->
-      print_endline "simplifier_identite";
+      print_endline "\t|-> simplifier_identite";
       Some v.substitution_fonction
   | _ -> None
 
@@ -402,7 +399,7 @@ and simplifier_contradiction = function
       substitution_fonction  = Contradiction _;
       substitution_arguments = argument :: _;
     } ->
-      print_endline "simplifier_constradiction";
+      print_endline "\t|-> simplifier_constradiction";
       Some (Contradiction { contradiction_arite = arite argument })
   | _ -> None
 
@@ -415,7 +412,7 @@ and simplifier_constante = function
       substitution_fonction  = Constante v;
       substitution_arguments = argument :: _;
     } ->
-      print_endline "simplifier_constante";
+      print_endline "\t|-> simplifier_constante";
       Some (Constante { v with constante_arite = arite argument })
   | _ -> None
 
@@ -428,7 +425,7 @@ and simplifier_projection = function
       substitution_fonction  = Projection v;
       substitution_arguments = arguments;
     } ->
-      print_endline "simplifier_projection";
+      print_endline "\t|-> simplifier_projection";
       Some (List.nth arguments (v.projection_indice - 1))
   | _ -> None
 
@@ -441,7 +438,7 @@ and simplifier_successeur_de_contradiction = function
       substitution_fonction  = Successeur _;
       substitution_arguments = Contradiction _ as c :: _;
     } ->
-      print_endline "simplifier_successeur_de_contradiction";
+      print_endline "\t|-> simplifier_successeur_de_contradiction";
       Some c
   | _ -> None
 
@@ -455,7 +452,7 @@ and simplifier_successeur_de_successeur = function
       substitution_fonction  = Successeur v1;
       substitution_arguments = Successeur v2 :: _;
     } ->
-      print_endline "simplifier_successeur_de_successeur";
+      print_endline "\t|-> simplifier_successeur_de_successeur";
       Some (Successeur {
           successeur_puissance = v1.successeur_puissance + v2.successeur_puissance;
         })
@@ -466,7 +463,7 @@ and simplifier_successeur_de_successeur = function
           substitution_arguments = arguments;
         } :: [];
     } ->
-      print_endline "simplifier_successeur_de_successeur";
+      print_endline "\t|-> simplifier_successeur_de_successeur";
       Some (Substitution {
           substitution_fonction  = Successeur {
               successeur_puissance = v1.successeur_puissance + v2.successeur_puissance;
@@ -484,7 +481,7 @@ and simplifier_successeur_de_constante = function
       substitution_fonction  = Successeur vs;
       substitution_arguments = Constante vc :: _;
     } ->
-      print_endline "simplifier_successeur_de_constante";
+      print_endline "\t|-> simplifier_successeur_de_constante";
       Some (Constante {
           vc with
           constante_valeur = vc.constante_valeur + vs.successeur_puissance
@@ -502,7 +499,7 @@ and simplifier_substitution = function
       substitution_fonction  = Substitution v;
       substitution_arguments = arguments;
     } ->
-      print_endline "simplifier_substitution";
+      print_endline "\t|-> simplifier_substitution";
       Some (Substitution {
           v with
           substitution_arguments = List.map (fun argument -> Substitution {
@@ -521,7 +518,7 @@ and simplifier_induction_sur_contradiction = function
       induction_base     = Contradiction v;
       induction_heredite = Contradiction _;
     } ->
-      print_endline "simplifier_induction_sur_contradiction";
+      print_endline "\t|-> simplifier_induction_sur_contradiction";
       Some (Contradiction { contradiction_arite = v.contradiction_arite + 1 })
   | _ -> None
 
@@ -534,7 +531,7 @@ and simplifier_induction_sur_constante = function
       induction_base     = Constante v1;
       induction_heredite = Constante v2;
     } when v1.constante_valeur = v2.constante_valeur ->
-      print_endline "simplifier_induction_sur_constante";
+      print_endline "\t|-> simplifier_induction_sur_constante";
       Some (Constante { v1 with constante_arite = v1.constante_arite + 1 })
   | _ -> None
 
@@ -547,7 +544,7 @@ and simplifier_induction_sur_projection = function
       induction_base     = Projection v1;
       induction_heredite = Projection v2;
     } when v1.projection_indice + 2 = v2.projection_indice ->
-      print_endline "simplifier_induction_sur_projection";
+      print_endline "\t|-> simplifier_induction_sur_projection";
       Some (Projection { v1 with projection_indice = v1.projection_indice + 1 })
   | _ -> None
 
@@ -563,7 +560,7 @@ and simplifier_induction_sur_successeur = function
           substitution_arguments = Projection { projection_indice = 2; _ } :: _;
         };
     } ->
-      print_endline "simplifier_induction_sur_successeur";
+      print_endline "\t|-> simplifier_induction_sur_successeur";
       Some (Successeur { successeur_puissance = v.constante_valeur })
   | _ -> None
 
@@ -582,7 +579,7 @@ and simplifier_induction_de_contradiction = function (* TODO *)
     } ->
       let rec recherche_contradiction indice acc = function
         | Contradiction _ :: arguments' ->
-            print_endline "simplifier_induction_de_contradiction";
+            print_endline "\t|-> simplifier_induction_de_contradiction";
             Some (Substitution {
                 substitution_fonction  = Induction {
                     induction_base     = parametre_contradiction (indice - 1) vi.induction_base;
@@ -612,7 +609,7 @@ and simplifier_induction_de_constante = function
     } ->
       let rec recherche_constante indice acc = function
         | Constante vc :: arguments' ->
-            print_endline "simplifier_induction_de_constante";
+            print_endline "\t|-> simplifier_induction_de_constante";
             Some (Substitution {
                 substitution_fonction  = Induction {
                     induction_base     = parametre_constant vc.constante_valeur (indice - 1) vi.induction_base;
@@ -636,7 +633,7 @@ and simplifier_induction_de_contradiction_1 = function
       substitution_fonction  = Induction _;
       substitution_arguments = Contradiction _ as c :: _;
     } ->
-      print_endline "simplifier_induction_de_contradiction_1";
+      print_endline "\t|-> simplifier_induction_de_contradiction_1";
       Some c
   | _ -> None
 
@@ -661,7 +658,7 @@ and simplifier_induction_de_constante_1 = function
               } :: acc :: arguments;
           }
       in
-      print_endline "simplifier_induction_de_constante_1";
+      print_endline "\t|-> simplifier_induction_de_constante_1";
       Some (inliner 0 @@ Substitution {
           substitution_fonction  = vi.induction_base;
           substitution_arguments = arguments;
@@ -676,7 +673,7 @@ and simplifier_minimisation_sur_contradiction = function
   | Minimisation {
       minimisation_predicat = Contradiction v;
     } ->
-      print_endline "simplifier_minimisation_sur_contradiction";
+      print_endline "\t|-> simplifier_minimisation_sur_contradiction";
       Some (Contradiction { contradiction_arite = v.contradiction_arite - 1 })
   | _ -> None
 
@@ -689,7 +686,7 @@ and simplifier_minimisation_sur_constante = function
   | Minimisation {
       minimisation_predicat = Constante v;
     } ->
-      print_endline "simplifier_minimisation_sur_constante";
+      print_endline "\t|-> simplifier_minimisation_sur_constante";
       Some (if v.constante_valeur = 0
             then Constante { v with constante_arite = v.constante_arite - 1 }
             else Contradiction { contradiction_arite = v.constante_arite - 1 })
@@ -703,7 +700,7 @@ and simplifier_minimisation_sur_projection = function
   | Minimisation {
       minimisation_predicat = Projection ({ projection_indice = 1; _ } as v);
     } ->
-      print_endline "simplifier_minimisation_sur_projection";
+      print_endline "\t|-> simplifier_minimisation_sur_projection";
       Some (Constante {
           constante_arite  = v.projection_arite - 1;
           constante_valeur = 0;
@@ -718,7 +715,7 @@ and simplifier_minimisation_sur_successeur = function
   | Minimisation {
       minimisation_predicat = Successeur _;
     } ->
-      print_endline "simplifier_minimisation_sur_successeur";
+      print_endline "\t|-> simplifier_minimisation_sur_successeur";
       Some (Contradiction { contradiction_arite = 1 })
   | _ -> None
 
@@ -736,7 +733,7 @@ and simplifier_minimisation_de_contradiction = function
     } ->
       let rec recherche_constante indice acc = function
         | Contradiction _ :: arguments' ->
-            print_endline "simplifier_minimisation_de_contradiction";
+            print_endline "\t|-> simplifier_minimisation_de_contradiction";
             Some (Substitution {
                 substitution_fonction  = parametre_contradiction (indice + 1) vm.minimisation_predicat;
                 substitution_arguments = List.rev_append acc arguments';
@@ -762,7 +759,7 @@ and simplifier_minimisation_de_constante = function
     } ->
       let rec recherche_constante indice acc = function
         | Constante vc :: arguments' ->
-            print_endline "simplifier_minimisation_de_constante";
+            print_endline "\t|-> simplifier_minimisation_de_constante";
             Some (Substitution {
                 substitution_fonction  = parametre_constant vc.constante_valeur (indice + 1) vm.minimisation_predicat;
                 substitution_arguments = List.rev_append acc arguments';

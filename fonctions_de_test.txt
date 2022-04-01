@@ -1,0 +1,5 @@
+# Add(a,b) == a + b
+Add = R(P(1,1), S . P(3,2))
+
+# Mul(a,b) == a * b
+Mul = R(C(1,0), Add . (P(3,2), P(3,3)))
