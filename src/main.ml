@@ -1,10 +1,12 @@
 module Dictionnaire = Map.Make(String)
 
+(*----------------------- types & variables -----------------------*)
 type noeud = Symbole      of char
            | Expression   of noeud list
            | Expression'  of noeud list list
            | Substitution of noeud list * noeud list
 
+(*----------------------- fonctions -----------------------*)
 
 let concatener_symboles liste =
   let buffer = Buffer.create (List.length liste) in
